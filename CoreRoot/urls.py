@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.urls import path, include
 from core.auth.viewsets.captcha import CaptchaAPIView
-
+from core.auth.viewsets.activate import ActivateUser
 urlpatterns = [
     path("api/", include([
         path("users/", include("core.user.routers")),
@@ -24,5 +24,6 @@ urlpatterns = [
         path("comments/", include("core.comment.routers")),
         path("captcha/", include("captcha.urls")),
         path("captcha/", CaptchaAPIView.as_view(), name="api-captcha"),
+        path("auth/activate/<uidb64>/<token>/", ActivateUser.as_view()),
     ])),
 ]

@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from core.auth.serializers.register import RegisterSerializer
-
+from core.auth.celery_tasks.tasks import send_activation_email
+from core.auth.utils import generate_activation_link
 
 class RegisterViewSet(viewsets.ModelViewSet):
     http_method_names = ['post']
@@ -23,4 +24,11 @@ class RegisterViewSet(viewsets.ModelViewSet):
         }
         
         headers = self.get_success_headers(serializer.data)
+        activation_link = generate_activation_link(user, request)
+        
+        send_activation_email.delay(
+            user.email,
+            "Подтверждение вашей почты",
+            f"Перейдите по ссылке для активации аккаунта:\n{activation_link}",
+        )
         return Response({'user': serializer.data, 'refresh': res_data['refresh'], 'token': res_data['access']}, status=status.HTTP_201_CREATED)

@@ -22,4 +22,11 @@ class RegisterSerializer(UserSerializer):
         fields = ['id','username','email','bio','avatar','first_name','last_name','password','captcha_key','captcha_value']
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        captcha_key = validated_data.pop('captcha_key')
+        captcha_value = validated_data.pop('captcha_value')
+
+        user = User.objects.create_user(**validated_data)
+        user.is_active = False
+        user.save()
+
+        return user

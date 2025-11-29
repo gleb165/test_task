@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'storages',
     'captcha',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -188,7 +189,6 @@ AWS_S3_VERIFY = True
 # настройки отправки почты
 
 # settings.py
-from decouple import config
 
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.example.com')
@@ -201,3 +201,12 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@example.com')
 SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)  
 
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
+
+
+# Celery
+CELERY_BROKER_URL = config('RABBITMQ_URL')
+CELERY_RESULT_BACKEND = 'django-db'               # мы подключили django_celery_results
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'

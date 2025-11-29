@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "my_project"
+version = "0.1.0"
+description = "Пример проекта с Commitizen"
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+
+[tool.commitizen]
+name = "cz_conventional_commits"  # шаблон conventional commits
+version = "0.1.0"                 # стартовая версия проекта
+tag_format = "v$version"           # формат тегов при релизе
+update_changelog_on_bump = true    # автоматически обновлять CHANGELOG при bump
+
+[tool.commitizen.bump]
+# Определяем, как изменять версии по типу коммита
+major = ["feat!"]
+minor = ["feat"]
+patch = ["fix", "perf", "refactor"]
+
+[tool.commitizen.changelog]
+# Параметры генерации CHANGELOG
+file = "CHANGELOG.md"
+header = "# Changelog\n\nВсе изменения в проекте\n"

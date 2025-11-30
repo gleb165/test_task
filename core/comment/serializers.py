@@ -9,7 +9,7 @@ from django.conf import settings
 from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
-
+from captcha.models import CaptchaStore
 # Разрешенные HTML теги для поля Text
 ALLOWED_TAGS = ['a', 'code', 'i', 'strong']
 ALLOWED_ATTRIBUTES = {
@@ -38,6 +38,11 @@ class CommentSerializer(AbstractSerializers):
     guest_name = serializers.CharField(max_length=100, required=False, allow_null=True)
     guest_email = serializers.EmailField(required=False, allow_null=True)
     
+    # Поля для капчи
+    captcha_key = serializers.CharField(write_only=True, required=False, allow_null=True)
+    captcha_value = serializers.CharField(write_only=True, required=False, allow_null=True)
+
+    
     # фронтенд френдли вывовод
     author_name = serializers.CharField(read_only=True)
     author_email = serializers.EmailField(read_only=True)
@@ -62,9 +67,11 @@ class CommentSerializer(AbstractSerializers):
 
         if isinstance(instance.author, User):
             representation['author'] = UserSerializer(instance.author).data
-        else: 
-            author_obj = User.objects.get_object_by_public_id(instance.author.public_id)
-            representation['author'] = UserSerializer(author_obj).data
+        else:
+            representation['author'] = {
+                "name": instance.guest_name,
+                "email": instance.guest_email,
+            }
         
         return representation
     
@@ -79,6 +86,18 @@ class CommentSerializer(AbstractSerializers):
                 raise ValidationError("User Name is required for guest comments.")
             if not data.get('guest_email'):
                 raise ValidationError("E-mail is required for guest comments.")
+
+            if not data.get('captcha_key') or not data.get('captcha_value'):
+                raise serializers.ValidationError({"captcha": "Капча обязательна"})
+            
+            try:
+                captcha = CaptchaStore.objects.get(hashkey=data['captcha_key'])
+            except CaptchaStore.DoesNotExist:
+                raise serializers.ValidationError({"captcha": "Неверный ключ капчи"})
+
+            if captcha.response != data['captcha_value'].lower():
+                raise serializers.ValidationError({"captcha": "Неверное значение капчи"})
+
             
 
         text = data.get('text')
@@ -90,6 +109,9 @@ class CommentSerializer(AbstractSerializers):
                 strip=True
             )
             data['text'] = cleaned_text
+        
+        data.pop('captcha_key', None)
+        data.pop('captcha_value', None)
         
         return data
     
@@ -105,6 +127,7 @@ class CommentSerializer(AbstractSerializers):
             validated_data['guest_email'] = None 
         else:
             validated_data.pop('author', None)
+            
 
         
         comment = Comment.objects.create(**validated_data)
@@ -173,5 +196,8 @@ class CommentSerializer(AbstractSerializers):
         
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'guest_name', 'guest_email', 'parent', 'author_name', 'author_email', 'liked', 'likes_count', 'text', 'attachments', 'edited', 'created', 'updated']
+        fields = [
+            'id', 'author', 'guest_name', 'guest_email', 'parent', 'author_name', 'author_email', 'liked', 'likes_count', 
+            'text', 'attachments', 'edited', 'created', 'updated', 'captcha_key', 'captcha_value'
+        ]
         read_only_fields = ['edited']

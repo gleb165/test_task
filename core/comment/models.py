@@ -8,7 +8,7 @@ class CommentManager(AbstractModelManager):
 
 class Comment(AbstractModel):
     
-    author = models.ForeignKey("core_user.User", on_delete=models.PROTECT)
+    author = models.ForeignKey("core_user.User", on_delete=models.PROTECT, blank=True, null=True)
     guest_name = models.CharField(max_length=100, blank=True, null=True)
     guest_email = models.EmailField(blank=True, null=True)
     homepage = models.URLField(blank=True, null=True)
@@ -26,7 +26,9 @@ class Comment(AbstractModel):
         ordering = ['-created']  # LIFO default
         
     def __str__(self):
-        return self.author.username
+        if self.author:
+            return self.author.username
+        return self.guest_name or "Anonymous"
     
     @property
     def author_name(self):

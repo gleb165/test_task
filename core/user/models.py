@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from core.abstract.models import AbstractModel, AbstractModelManager
+from core.comment.services.comment_likes_cache import CommentLikesCache
 
 # Create your models here.
 
@@ -65,11 +66,13 @@ class User(AbstractModel, AbstractBaseUser, PermissionsMixin):
         return f"{self.first_name} {self.last_name}"
     
     def like(self, comment):
-        return self.comments_liked.add(comment)
-    
+        self.comments_liked.add(comment)
+        CommentLikesCache.like(comment.id, self.id)
+
     def unlike(self, comment):
-        return self.comments_liked.remove(comment)
+        self.comments_liked.remove(comment)
+        CommentLikesCache.unlike(comment.id, self.id)
 
     def has_liked(self, comment):
-        return self.comments_liked.filter(pk=comment.pk).exists()
+        return CommentLikesCache.has_liked(comment.id, self.id)
     

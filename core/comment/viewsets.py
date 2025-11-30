@@ -85,18 +85,18 @@ class CommentViewSet(AbstractViewSet):
     
     
     @action(detail=True, methods=['post'])
-    def like(self, request):
-        post = self.get_object()
+    def like(self, request, pk=None):
+        comment = self.get_object()
         user = request.user
-        user.like(post)
-        serializer = self.serializer_class(post)
+        user.like(comment)
+        serializer = self.serializer_class(comment)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
     @action(detail=True, methods=['post'])
-    def unlike(self, request):
-        post = self.get_object()
+    def unlike(self, request, pk=None):
+        comment = self.get_object()
         user = request.user
-        user.unlike(post)
-        serializer = self.serializer_class(post)
+        user.unlike(comment)
+        serializer = self.serializer_class(comment)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -10,6 +10,9 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from captcha.models import CaptchaStore
+
+from core.comment.services.comment_likes_cache import CommentLikesCache
+
 # Разрешенные HTML теги для поля Text
 ALLOWED_TAGS = ['a', 'code', 'i', 'strong']
 ALLOWED_ATTRIBUTES = {
@@ -54,13 +57,13 @@ class CommentSerializer(AbstractSerializers):
 
     
     def get_likes_count(self, instance):
-        return instance.liked_by.count()
+        return CommentLikesCache.likes_count(instance.id)
     
     def get_liked(self, instance):
         request = self.context.get('request', None)
         if request is None or request.user.is_anonymous:
             return False
-        return request.user.has_liked(instance)
+        return CommentLikesCache.has_liked(instance.id, request.user.id)
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

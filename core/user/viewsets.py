@@ -6,7 +6,7 @@ from core.user.serializers import UserSerializer
 # Create your views here.
 
 class UserViewSet(AbstractViewSet):
-    http_method_names = ['get', 'patch']
+    http_method_names = ['get', 'patch', 'put', 'delete']
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     

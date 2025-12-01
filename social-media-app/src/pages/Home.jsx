@@ -57,7 +57,7 @@ function Home() {
 
     return (
         <div className="comments-container">
-            <h1>Комментарии</h1>
+
             {loading && <p>Загрузка...</p>}
             {error && <p style={{color: 'red'}}>Ошибка: {error}</p>}
             <CommentTable

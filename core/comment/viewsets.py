@@ -6,7 +6,7 @@ from core.comment.models import Comment
 from core.comment.serializers import CommentSerializer
 from core.auth.viewsets.permissions  import UserPermission
 from rest_framework.decorators import action
-from django.db.models import Case, When, CharField
+from django.db.models import Case, When, Value, CharField, F
 
 
 class CommentViewSet(AbstractViewSet):
@@ -14,31 +14,31 @@ class CommentViewSet(AbstractViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
     serializer_class = CommentSerializer
     permission_classes = (UserPermission,)
+    filter_backends = []  # ← Отключите OrderingFilter
+    ordering = None
     
     def get_queryset(self):
         queryset = super().get_queryset()
         
         user = self.request.user
 
-
         if not user.is_authenticated or not (user.is_staff or user.is_superuser):
             queryset = queryset.filter(active=True)
             
-
+        # Аннотация для sortable_name
         queryset = queryset.annotate(
             sortable_name=Case(
-                When(guest_name__isnull=False, guest_name__exact='', then='author__username'),
-                When(guest_name__isnull=False, then='guest_name'),
-                default='author__username', 
+                When(guest_name__isnull=False, then=F('guest_name')),
+                default=F('author__username'), 
                 output_field=CharField(),
             )
         )
         
+        # Аннотация для sortable_email
         queryset = queryset.annotate(
             sortable_email=Case(
-                When(guest_email__isnull=False, guest_email__exact='', then='author__email'),
-                When(guest_email__isnull=False, then='guest_email'),
-                default='author__email',
+                When(guest_email__isnull=False, then=F('guest_email')),
+                default=F('author__email'),
                 output_field=CharField(),
             )
         )
@@ -85,7 +85,7 @@ class CommentViewSet(AbstractViewSet):
     
     
     @action(detail=True, methods=['post'])
-    def like(self, request, pk=None):
+    def like(self, request,pk=None):
         comment = self.get_object()
         user = request.user
         user.like(comment)
@@ -94,7 +94,7 @@ class CommentViewSet(AbstractViewSet):
 
 
     @action(detail=True, methods=['post'])
-    def unlike(self, request, pk=None):
+    def unlike(self, request,pk=None):
         comment = self.get_object()
         user = request.user
         user.unlike(comment)

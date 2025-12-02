@@ -103,3 +103,114 @@
     border-left: 2px solid #ececec;
     padding-left: 20px;
 }
+
+/* hover effects for icons */
+/* Контейнер вложений */
+.attachments {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* Каждая картинка */
+.attachments img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    /* красиво обрезает */
+    border-radius: 8px;
+    cursor: zoom-in;
+    transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Эффект при наведении */
+.attachments img:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Лайтбокс-фон */
+.lightbox-backdrop {
+    backdrop-filter: blur(4px);
+}
+
+/* Картинка в лайтбоксе */
+.lightbox-image {
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+    animation: zoomIn 0.25s ease;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+/* Анимация увеличения */
+@keyframes zoomIn {
+    from {
+        transform: scale(0.85);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+.lightbox-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
+/* ... (существующие стили) */
+
+/* 💡 НОВЫЕ СТИЛИ ДЛЯ ТЕКСТОВОГО ВЛОЖЕНИЯ */
+.attachment-text {
+    /* Чтобы оно хорошо вписывалось в grid вложений */
+    background: #f7f7f7;
+    border: 1px solid #e0e0e0;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #444;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-decoration: none;
+    /* Убираем подчеркивание у ссылки */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.attachment-text p {
+    margin: 0;
+    line-height: 1.3;
+    /* Чтобы не было конфликта с общим стилем <p> в comment-body */
+}
+
+.attachment-text a {
+    color: #377dff;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: 4px;
+    /* Отступ от текста файла */
+}
+
+.attachment-text a:hover {
+    text-decoration: underline;
+}
+
+/* ... (остальные стили) */

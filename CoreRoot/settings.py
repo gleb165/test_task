@@ -167,7 +167,9 @@ AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = "natash"
 AWS_S3_REGION_NAME = "eu-north-1"  # например Франкфурт
 AWS_S3_SIGNATURE_VERSION = "s3v4"
-
+AWS_S3_OBJECT_PARAMETERS = {
+    'ContentType': 'text/plain; charset=utf-8'
+}
 # Картинки будут храниться в S3
 STORAGES = {
     "default": {

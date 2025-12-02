@@ -7,14 +7,22 @@ const SORT_FIELDS = [
   { key: "created", label: "Дата" },
 ];
 
-function CommentTable({ comments, onPageChange, page, pageCount, onSort, sortField, sortOrder, onSelect }) {
+// Добавим пропс onAddComment
+function CommentTable({ comments, onPageChange, page, pageCount, onSort, sortField, sortOrder, onSelect, onAddComment }) {
   return (
     <div className="comment-table-wrapper">
-
-      <h2 className="comment-title">Комментарии</h2>
-
+      
+      {/* Кнопка для открытия модального окна */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <h2 className="comment-title">Комментарии</h2>
+        <button className="add-comment-btn" onClick={onAddComment}>
+            Добавить комментарий
+        </button>
+      </div>
+      
       <table className="comment-table">
         <thead>
+          {/* ... остальной код thead ... */}
           <tr>
             {SORT_FIELDS.map(f => (
               <th key={f.key} className="th-col">
@@ -28,6 +36,7 @@ function CommentTable({ comments, onPageChange, page, pageCount, onSort, sortFie
         </thead>
 
         <tbody>
+          {/* ... остальной код tbody ... */}
           {comments.map(comment => (
             <tr key={comment.id} 
             onClick={() => onSelect(comment.id)} 
@@ -41,6 +50,7 @@ function CommentTable({ comments, onPageChange, page, pageCount, onSort, sortFie
         </tbody>
       </table>
 
+      {/* ... остальной код пагинации ... */}
       <div className="pagination">
         <button disabled={page === 1} onClick={() => onPageChange(page - 1)}>← Назад</button>
         <span>Стр. {page} / {pageCount}</span>

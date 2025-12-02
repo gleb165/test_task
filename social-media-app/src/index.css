@@ -83,8 +83,7 @@ button:focus-visible {
 .comment-table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 8px;
-  /* разделение строк */
+  border-spacing: 0 8px; /* разделение строк */
   font-size: 15px;
 }
 
@@ -98,26 +97,15 @@ button:focus-visible {
 }
 
 /* фиксируем ширину колонок */
-.th-col:nth-child(1) {
-  width: 170px;
-}
-
-.th-col:nth-child(2) {
-  width: 260px;
-}
-
-.th-col:nth-child(3) {
-  width: 180px;
-}
-
-.th-comment {
-  width: auto;
-}
+.th-col:nth-child(1) { width: 170px; }
+.th-col:nth-child(2) { width: 260px; }
+.th-col:nth-child(3) { width: 180px; }
+.th-comment { width: auto; }
 
 .comment-table tbody tr {
   background: #ffffff;
   border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
 }
 
 .comment-table tbody td {
@@ -126,23 +114,10 @@ button:focus-visible {
 }
 
 /* аккуратные стили ячеек */
-.td-username {
-  font-weight: 600;
-}
-
-.td-email {
-  color: #444;
-}
-
-.td-date {
-  font-size: 14px;
-  color: #666;
-}
-
-.td-comment {
-  color: #222;
-  line-height: 1.45;
-}
+.td-username { font-weight: 600; }
+.td-email { color: #444; }
+.td-date { font-size: 14px; color: #666; }
+.td-comment { color: #222; line-height: 1.45; }
 
 /* hover-эффект */
 .comment-table tbody tr:hover {
@@ -159,10 +134,7 @@ button:focus-visible {
   font-size: 15px;
   cursor: pointer;
 }
-
-.sort-btn:hover {
-  opacity: 0.7;
-}
+.sort-btn:hover { opacity: 0.7; }
 
 /* пагинация */
 .pagination {
@@ -183,12 +155,5 @@ button:focus-visible {
   font-size: 15px;
   transition: 0.2s;
 }
-
-.pagination button:hover {
-  opacity: 0.8;
-}
-
-.pagination button:disabled {
-  background: #888;
-  cursor: not-allowed;
-}
+.pagination button:hover { opacity: 0.8; }
+.pagination button:disabled { background: #888; cursor: not-allowed; }

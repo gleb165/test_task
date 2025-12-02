@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CommentTable from "../components/CommentTable";
+import CommentsPage from "../components/CommentsPage";
 
 const PAGE_SIZE = 25;
 
@@ -8,12 +9,13 @@ function Home() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
-    const [sortField, setSortField] = useState('created'); // Изменил с 'timestamp' на 'created'
-    const [sortOrder, setSortOrder] = useState('desc'); // LIFO by default
+    const [sortField, setSortField] = useState('created');
+    const [sortOrder, setSortOrder] = useState('desc');
     const [total, setTotal] = useState(0);
-    
+
+    const [selectedComment, setSelectedComment] = useState(null);
+
     useEffect(() => {
-        // ИСПРАВЛЕНО: Теперь отправляем sort_by и order отдельно
         fetch(`/api/comments/?sort_by=${sortField}&order=${sortOrder}`)
             .then((res) => {
                 if (!res.ok) throw new Error("Network response was not ok");
@@ -31,7 +33,7 @@ function Home() {
                     likes: comment.likes_count,
                     liked: comment.liked,
                     attachments: comment.attachments,
-                    replies: [], // вложенные ответы можно добавить позже
+                    replies: [],
                 }));
                 setComments(mappedComments);
                 setTotal(data.count || 0);
@@ -60,15 +62,26 @@ function Home() {
 
             {loading && <p>Загрузка...</p>}
             {error && <p style={{color: 'red'}}>Ошибка: {error}</p>}
-            <CommentTable
-                comments={comments}
-                onPageChange={setPage}
-                page={page}
-                pageCount={pageCount}
-                onSort={handleSort}
-                sortField={sortField}
-                sortOrder={sortOrder}
-            />
+
+            {selectedComment ? (
+                <div>
+                    <button onClick={() => setSelectedComment(null)}>← Назад</button>
+                    <CommentsPage commentId={selectedComment} />
+                </div>
+            ) : (
+                <CommentTable
+                    comments={comments}
+                    onPageChange={setPage}
+                    page={page}
+                    pageCount={pageCount}
+                    onSort={handleSort}
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSelect={setSelectedComment}
+                    
+                />
+            )}
+
         </div>
     );
 }

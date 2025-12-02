@@ -1,120 +1,105 @@
-/* Карточка комментария */
+.comment-wrapper {
+    margin-top: 12px;
+}
+
 .comment-card {
     background: #ffffff;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    padding: 14px 18px;
-    margin-bottom: 16px;
-    box-shadow: none;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  /* Ответы выглядят более встроенными */
-  .comment-card.reply {
-    background: #fafafa;
-    border-left: 2px solid #d0d0d0;
-    margin-left: 48px;
-    padding-left: 16px;
-    border-radius: 6px;
-    box-shadow: none;
-  }
-  
-  /* Шапка комментария */
-  .comment-header {
+    border-radius: 14px;
+    padding: 18px 20px;
+    border: 1px solid #e6e6e6;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.comment-header {
     display: flex;
     align-items: center;
-    width: 100%;
-    margin-bottom: 6px;
-  }
-  
-  /* Аватар — маленький, как на скрине */
-  .avatar {
-    width: 34px;
-    height: 34px;
+    gap: 14px;
+}
+
+.avatar {
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
-    object-fit: cover;
-    margin-right: 10px;
-    border: 1px solid #dcdcdc;
-    background: #f0f0f0;
-  }
-  
-  /* Метаданные */
-  .comment-meta {
+}
+
+.comment-meta {
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .username {
-    font-weight: 600;
-    font-size: 0.95rem;
+}
+
+.username {
+    font-size: 15px;
+    font-weight: 700;
     color: #222;
-    margin-bottom: 1px;
-  }
-  
-  .timestamp {
-    font-size: 0.85rem;
-    color: #999;
-  }
-  
-  /* Текст комментария */
-  .comment-body {
-    margin: 6px 0 10px 0;
-    font-size: 1rem;
-    color: #222;
-    line-height: 1.55;
-    width: 100%;
-    text-align: left;
-  }
-  
-  /* Блок с кнопками */
-  .comment-actions {
+}
+
+.timestamp {
+    font-size: 12.5px;
+    color: #767676;
+}
+
+.comment-icons {
     display: flex;
     gap: 12px;
-    margin-top: 4px;
-    margin-bottom: 0;
-  }
-  
-  /* Кнопки — более плоские, без теней */
-  .comment-actions button {
-    background: transparent;
-    border: none;
-    color: #666;
+    font-size: 17px;
+    color: #9b9b9b;
     cursor: pointer;
-    padding: 4px 10px;
-    font-size: 0.9rem;
-    border-radius: 6px;
-    transition: 0.15s;
+}
+
+.comment-body {
+    margin-top: 12px;
+    font-size: 15px;
+    color: #333;
+    line-height: 1.42;
+}
+
+.attachments img {
+    width: 160px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.comment-footer {
+    margin-top: 14px;
     display: flex;
     align-items: center;
-    gap: 5px;
-  }
-  
-  .comment-actions button:hover {
-    background: #f2f2f2;
-    color: #222;
-  }
-  
-  /* Контейнер ответов */
-  .comment-replies {
-    width: 100%;
-    margin-top: 6px;
-  }
-  
-  /* Общий контейнер */
-  .comments-container {
-    max-width: 700px;
-    margin: 30px auto;
-    padding: 0 12px;
-    text-align: center;
-  }
-  
-  .comments-container h1 {
-    font-size: 1.7rem;
-    font-weight: 700;
-    margin-bottom: 24px;
-    color: #222;
-  }
-  
+    justify-content: space-between;
+}
+
+.reply-btn {
+    background: none;
+    border: none;
+    color: #377dff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.reply-btn:hover {
+    opacity: 0.7;
+}
+
+.like-block {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 16px;
+}
+
+.like-btn,
+.dislike-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #7a7a7a;
+}
+
+.comment-replies {
+    margin-left: 55px;
+    margin-top: 14px;
+    border-left: 2px solid #ececec;
+    padding-left: 20px;
+}

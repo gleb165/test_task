@@ -1,0 +1,194 @@
+.table-container {
+    width: 70%;
+    margin: 50px auto;
+    padding-bottom: 40px;
+}
+
+.title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+/* строгая таблица */
+.comment-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.comment-table th {
+    background: #111;
+    color: #fff;
+    font-weight: 700;
+    padding: 14px;
+    text-align: left;
+}
+
+.comment-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+/* читаемость строк */
+.comment-table tr:nth-child(even) {
+    background: #fafafa;
+}
+
+/* комментарии не убегают */
+.comment-body {
+    max-width: 420px;
+    white-space: pre-wrap;
+    line-height: 1.4;
+}
+
+/* сортировка */
+.sort-btn {
+    background: none;
+    border: none;
+    font-size: 15px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.sort-btn:hover {
+    opacity: .7
+}
+
+/* кнопка удаления */
+.delete-btn {
+    background: #ff4d4d;
+    border: none;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.delete-btn:hover {
+    background: #e63838
+}
+
+/* pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.pagination button {
+    padding: 7px 15px;
+    border: none;
+    background: #111;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.pagination button:disabled {
+    background: #808080
+}
+
+
+.table-container {
+    width: 70%;
+    margin: 50px auto;
+    padding-bottom: 40px;
+}
+
+.title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+/* строгая таблица */
+.comment-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.comment-table th {
+    background: #111;
+    color: #fff;
+    font-weight: 700;
+    padding: 14px;
+    text-align: left;
+}
+
+.comment-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+/* читаемость строк */
+.comment-table tr:nth-child(even) {
+    background: #fafafa;
+}
+
+/* комментарии не убегают */
+.comment-body {
+    max-width: 420px;
+    white-space: pre-wrap;
+    line-height: 1.4;
+}
+
+/* сортировка */
+.sort-btn {
+    background: none;
+    border: none;
+    font-size: 15px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.sort-btn:hover {
+    opacity: .7
+}
+
+/* кнопка удаления */
+.delete-btn {
+    background: #ff4d4d;
+    border: none;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.delete-btn:hover {
+    background: #e63838
+}
+
+/* pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.pagination button {
+    padding: 7px 15px;
+    border: none;
+    background: #111;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.pagination button:disabled {
+    background: #808080
+}

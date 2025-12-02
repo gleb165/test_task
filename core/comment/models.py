@@ -8,10 +8,11 @@ class CommentManager(AbstractModelManager):
 
 class Comment(AbstractModel):
     
-    author = models.ForeignKey("core_user.User", on_delete=models.PROTECT, blank=True, null=True)
+    author = models.ForeignKey("core_user.User", on_delete=models.CASCADE, blank=True, null=True)
     guest_name = models.CharField(max_length=100, blank=True, null=True)
     guest_email = models.EmailField(blank=True, null=True)
     homepage = models.URLField(blank=True, null=True)
+    # отношения с самим собой чтобы реализовать (каскадное отображение)
     parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
     text = models.TextField()
     

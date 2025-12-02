@@ -14,7 +14,7 @@ class CommentViewSet(AbstractViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
     serializer_class = CommentSerializer
     permission_classes = (UserPermission,)
-    filter_backends = []  # ← Отключите OrderingFilter
+    filter_backends = [] 
     ordering = None
     
     def get_queryset(self):
@@ -75,12 +75,23 @@ class CommentViewSet(AbstractViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get', 'post'])
     def replies(self, request, pk=None):
         comment = self.get_object()
-        replies = comment.replies.all() 
-        serializer = self.get_serializer(replies, many=True)
-        return Response(serializer.data)
+
+        if request.method == 'GET':
+            replies = comment.replies.all() 
+            serializer = self.get_serializer(replies, many=True)
+            return Response(serializer.data)
+
+        elif request.method == 'POST':
+            data = request.data.copy()
+            data['parent'] = comment.public_id 
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                reply = serializer.save() 
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     
     

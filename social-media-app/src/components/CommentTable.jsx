@@ -1,4 +1,5 @@
 import React from "react";
+import './CommentTable.css';
 
 const SORT_FIELDS = [
   { key: "username", label: "Имя" },
@@ -6,11 +7,10 @@ const SORT_FIELDS = [
   { key: "created", label: "Дата" },
 ];
 
-function CommentTable({ comments, onPageChange, page, pageCount, onSort, sortField, sortOrder }) {
+function CommentTable({ comments, onPageChange, page, pageCount, onSort, sortField, sortOrder, onSelect }) {
   return (
     <div className="comment-table-wrapper">
 
-      {/* Заголовок таблицы */}
       <h2 className="comment-title">Комментарии</h2>
 
       <table className="comment-table">
@@ -29,7 +29,9 @@ function CommentTable({ comments, onPageChange, page, pageCount, onSort, sortFie
 
         <tbody>
           {comments.map(comment => (
-            <tr key={comment.id}>
+            <tr key={comment.id} 
+            onClick={() => onSelect(comment.id)} 
+            className="clickable-row">
               <td className="td-username">{comment.username}</td>
               <td className="td-email">{comment.email}</td>
               <td className="td-date">{new Date(comment.created).toLocaleString()}</td>

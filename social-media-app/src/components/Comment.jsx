@@ -1,9 +1,28 @@
-import React, { useState } from "react";
+import React, {useEffect, useState } from "react";
 import "./Comment.css";
+import CreateCommentModal from "./CreateCommentModal";
 
 const Comment = ({ comment }) => {
+  const [user, setUser] = useState(null);
+  
+      useEffect(() => {
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            try {
+              setUser(JSON.parse(storedUser));
+            } catch (e) {
+              console.error("Ошибка парсинга данных пользователя из localStorage:", e);
+              localStorage.removeItem('user'); 
+            }
+          }
+      }, []);
+  
+  const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [lightboxImg, setLightboxImg] = useState(null);
-
+  const isUserAuthenticated = user !== null; 
+  const currentUser = isUserAuthenticated 
+    ? { username: user.username, email: user.email }
+    : {}; 
   return (
     <div className="comment-wrapper">
       <div className="comment-card">
@@ -46,16 +65,15 @@ const Comment = ({ comment }) => {
                       key={att.id}
                       src={att.file}
                       alt="Вложение-изображение"
-                      onClick={() => setLightboxImg(att.file)} 
+                      onClick={() => setLightboxImg(att.file)}
                     />
                   );
                 } else if (att.attachment_type === "text") {
-                  // 💡 ДОБАВЛЕНИЕ ДЛЯ ТЕКСТОВОГО ВЛОЖЕНИЯ
                   return (
                     <div key={att.id} className="attachment-text">
                       <p>📄 Файл: {att.filename || 'Текстовый файл'}</p>
                       <a href={att.file} target="_blank" rel="noopener noreferrer">
-                         (Открыть/Скачать)
+                        (Открыть/Скачать)
                       </a>
                     </div>
                   );
@@ -68,7 +86,12 @@ const Comment = ({ comment }) => {
 
         {/* FOOTER */}
         <div className="comment-footer">
-          <button className="reply-btn">Ответить</button>
+          <button
+            className="reply-btn"
+            onClick={() => setReplyModalOpen(true)}
+          >
+            Ответить
+          </button>
 
           <div className="like-block">
             <button className="like-btn">▲</button>
@@ -78,7 +101,7 @@ const Comment = ({ comment }) => {
         </div>
       </div>
 
-      {/* RECURSIVE REPLIES */}
+      {/* REPLIES */}
       {comment.replies?.length > 0 && (
         <div className="comment-replies">
           {comment.replies.map(rep => (
@@ -92,6 +115,20 @@ const Comment = ({ comment }) => {
         <div className="lightbox-backdrop" onClick={() => setLightboxImg(null)}>
           <img src={lightboxImg} className="lightbox-image" alt="" />
         </div>
+      )}
+
+      {/* MODAL — главное! */}
+      {replyModalOpen && (
+        <CreateCommentModal
+          isAuth={isUserAuthenticated}
+          user = {currentUser}
+          parentId={comment.id}
+          onClose={() => setReplyModalOpen(false)}
+          onCommentCreated={() => {
+            setReplyModalOpen(false);
+            // можно вызвать обновление комментариев
+          }}
+        />
       )}
     </div>
   );

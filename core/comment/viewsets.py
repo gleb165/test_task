@@ -7,6 +7,7 @@ from core.comment.serializers import CommentSerializer
 from core.auth.viewsets.permissions  import UserPermission
 from rest_framework.decorators import action
 from django.db.models import Case, When, Value, CharField, F
+from rest_framework.permissions import AllowAny
 
 
 class CommentViewSet(AbstractViewSet):
@@ -23,7 +24,7 @@ class CommentViewSet(AbstractViewSet):
         user = self.request.user
 
         if not user.is_authenticated or not (user.is_staff or user.is_superuser):
-            queryset = queryset.filter(active=True)
+            queryset = queryset.filter(active=True, parent__isnull=True)
             
         # Аннотация для sortable_name
         queryset = queryset.annotate(
@@ -75,7 +76,7 @@ class CommentViewSet(AbstractViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     
-    @action(detail=True, methods=['get', 'post'])
+    @action(detail=True, methods=['get', 'post'], permission_classes=[AllowAny])
     def replies(self, request, pk=None):
         comment = self.get_object()
 

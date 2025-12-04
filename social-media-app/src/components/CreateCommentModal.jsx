@@ -25,6 +25,7 @@ const CreateCommentModal = ({ isAuth = false, user = {}, parentId = null, onClos
         )
     });
 
+    const [files, setFiles] = useState([]);            
     const [captcha, setCaptcha] = useState({ key: '', image_url: '' });
     const [loading, setLoading] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
@@ -53,30 +54,42 @@ const CreateCommentModal = ({ isAuth = false, user = {}, parentId = null, onClos
         }
     };
 
+    const handleFileChange = (e) => {
+        const selected = Array.from(e.target.files || []);
+        setFiles(selected);
+        if (validationErrors.attachments || validationErrors.general) {
+            setValidationErrors(prev => ({ ...prev, attachments: undefined, general: undefined }));
+        }
+    };
+
     const handleSubmit = async e => {
         e.preventDefault();
         setValidationErrors({});
         setSuccess(false);
         setLoading(true);
 
-        // PAYLOAD
-        const payload = { text: form.text };
+        const csrfToken = getCookie('csrftoken');
+
+        // --- Готовим FormData вместо JSON ---
+        const formData = new FormData();
+        formData.append('text', form.text);
 
         if (parentId) {
-            payload.parent = parentId;
+            formData.append('parent', parentId);
         }
-        
 
         if (!isAuth) {
-            payload.guest_name = form.username;
-            payload.guest_email = form.email;
-            payload.captcha_key = form.captcha_key;
-            payload.captcha_value = form.captcha_value;
+            formData.append('guest_name', form.username);
+            formData.append('guest_email', form.email);
+            formData.append('captcha_key', form.captcha_key);
+            formData.append('captcha_value', form.captcha_value);
         }
 
-        const csrfToken = getCookie('csrftoken');
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+
         const headers = {
-            'Content-Type': 'application/json',
             ...(csrfToken && { 'X-CSRFToken': csrfToken }),
         };
 
@@ -93,10 +106,15 @@ const CreateCommentModal = ({ isAuth = false, user = {}, parentId = null, onClos
             const res = await fetch(url, {
                 method: 'POST',
                 headers,
-                body: JSON.stringify(payload),
+                body: formData,
             });
 
-            const data = await res.json();
+            let data = {};
+            try {
+                data = await res.json();
+            } catch {
+                data = {};
+            }
 
             if (!res.ok) {
                 if (res.status === 400 && typeof data === 'object') {
@@ -105,6 +123,7 @@ const CreateCommentModal = ({ isAuth = false, user = {}, parentId = null, onClos
                         username: data.guest_name?.join(' '),
                         email: data.guest_email?.join(' '),
                         captcha_value: data.captcha?.join(' '),
+                        attachments: data.attachments?.join(' '),
                         general: data.non_field_errors?.join(' ') || data.detail,
                     });
                 } else {
@@ -174,6 +193,25 @@ const CreateCommentModal = ({ isAuth = false, user = {}, parentId = null, onClos
                         rows="5"
                     />
                     <ErrorMessage field="text" />
+
+                    {/* ФАЙЛЫ */}
+                    <div style={{ marginTop: 10 }}>
+                        <input
+                            type="file"
+                            multiple
+                            onChange={handleFileChange}
+                        />
+                        <ErrorMessage field="attachments" />
+                        {files.length > 0 && (
+                            <div className="modal-files-list">
+                                {files.map((f, i) => (
+                                    <div key={i} className="modal-file-item">
+                                        {f.name}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
                     {/* CAPTCHA — только для гостей */}
                     {!isAuth && (

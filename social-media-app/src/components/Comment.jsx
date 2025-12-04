@@ -25,9 +25,7 @@ const Comment = ({ comment, onLike, onDislike, onReplyCreated }) => {
     : {};
 
   const handleReplyCreated = () => {
-    // закрываем модал
     setReplyModalOpen(false);
-    // говорим родителю "у этого комментария появился новый ответ"
     if (onReplyCreated) {
       onReplyCreated(comment.id);
     }
@@ -35,9 +33,7 @@ const Comment = ({ comment, onLike, onDislike, onReplyCreated }) => {
 
   return (
     <div className="comment-wrapper">
-      {/* COMMENT CARD */}
       <div className="comment-card">
-        {/* HEADER */}
         <div className="comment-header">
           <img
             className="avatar"
@@ -55,7 +51,6 @@ const Comment = ({ comment, onLike, onDislike, onReplyCreated }) => {
           </div>
         </div>
 
-        {/* BODY */}
         <div className="comment-body">
           <p>{comment.text}</p>
 
@@ -91,7 +86,6 @@ const Comment = ({ comment, onLike, onDislike, onReplyCreated }) => {
           )}
         </div>
 
-        {/* FOOTER */}
         <div className="comment-footer">
           <button
             className="reply-btn"
@@ -124,7 +118,6 @@ const Comment = ({ comment, onLike, onDislike, onReplyCreated }) => {
         </div>
       </div>
 
-      {/* REPLIES */}
       {comment.replies?.length > 0 && (
         <div className="comment-replies">
           {comment.replies.map((rep) => (
@@ -133,14 +126,12 @@ const Comment = ({ comment, onLike, onDislike, onReplyCreated }) => {
               comment={rep}
               onLike={onLike}
               onDislike={onDislike}
-              // очень важно: пробрасываем onReplyCreated дальше
               onReplyCreated={onReplyCreated}
             />
           ))}
         </div>
       )}
 
-      {/* LIGHTBOX */}
       {lightboxImg && (
         <div
           className="lightbox-backdrop"
@@ -150,7 +141,6 @@ const Comment = ({ comment, onLike, onDislike, onReplyCreated }) => {
         </div>
       )}
 
-      {/* MODAL */}
       {replyModalOpen && (
         <CreateCommentModal
           isAuth={isUserAuthenticated}

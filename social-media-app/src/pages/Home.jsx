@@ -1,5 +1,5 @@
 // Home.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import CommentTable from "../components/CommentTable";
 import CommentsPage from "../components/CommentsPage";
 import CreateCommentModal from "../components/CreateCommentModal";
@@ -8,7 +8,6 @@ import { authFetch } from "../authFetch";
 const PAGE_SIZE = 25;
 
 function Home() {
-  // --- авторизация через localStorage ---
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -17,64 +16,72 @@ function Home() {
       try {
         setUser(JSON.parse(storedUser));
       } catch (e) {
-        console.error("Ошибка парсинга данных пользователя из localStorage:", e);
+        console.error("Ошибка парсинга user:", e);
         localStorage.removeItem("user");
       }
     }
   }, []);
 
-  const isUserAuthenticated = user !== null;
+  const isUserAuthenticated = !!user;
   const currentUser = isUserAuthenticated
     ? { username: user.username, email: user.email }
     : {};
 
-  // --- состояние списка комментариев ---
   const [comments, setComments] = useState([]);
+  const [page, setPage] = useState(1); // последняя загруженная страница
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
+
   const [sortField, setSortField] = useState("created");
   const [sortOrder, setSortOrder] = useState("desc");
-  const [total, setTotal] = useState(0);
 
   const [selectedComment, setSelectedComment] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // --- загрузка списка комментариев через REST ---
-  const fetchComments = () => {
+
+  const loaderRef = useRef(null);
+
+  const fetchComments = (pageToLoad = 1, append = false) => {
     setLoading(true);
     setError(null);
 
     authFetch(
-      `/api/comments/?page=${page}&sort_by=${sortField}&order=${sortOrder}`,
-      {
-        method: "GET",
-      }
+      `/api/comments/?page=${pageToLoad}&sort_by=${sortField}&order=${sortOrder}`,
+      { method: "GET" }
     )
       .then((res) => {
         if (!res.ok) throw new Error("Network response was not ok");
         return res.json();
       })
       .then((data) => {
-        const mappedComments = (data.results || []).map((comment) => ({
-          id: comment.id,
-          username: comment.author_name || comment.guest_name,
-          email: comment.author_email || comment.guest_email,
-          avatar: comment.author?.avatar || "/default-avatar.png",
-          timestamp: new Date(comment.created).toLocaleString("ru-RU", {
+        const mapped = (data.results || []).map((c) => ({
+          id: c.id,
+          username: c.author_name || c.guest_name,
+          email: c.author_email || c.guest_email,
+          avatar: c.author?.avatar || "/default-avatar.png",
+          timestamp: new Date(c.created).toLocaleString("ru-RU", {
             dateStyle: "medium",
             timeStyle: "short",
           }),
-          created: comment.created,
-          text: comment.text,
-          likes: comment.likes_count,
-          liked: comment.liked,
-          attachments: comment.attachments,
-          replies: comment.replies || [],
+          created: c.created,
+          text: c.text,
+          likes: c.likes_count,
+          liked: c.liked,
+          attachments: c.attachments,
+          replies: c.replies || [],
         }));
 
-        setComments(mappedComments);
-        setTotal(data.count || 0);
+        setComments((prev) => (append ? [...prev, ...mapped] : mapped));
+
+        const totalCount = data.count || 0;
+        setTotal(totalCount);
+
+        const maxPage = Math.ceil(totalCount / PAGE_SIZE);
+        setHasMore(mapped.length > 0 && pageToLoad < maxPage);
+
         setLoading(false);
       })
       .catch((err) => {
@@ -84,11 +91,33 @@ function Home() {
   };
 
   useEffect(() => {
-    fetchComments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, sortField, sortOrder]);
+    setPage(1);
+    fetchComments(1, false);
+  }, [sortField, sortOrder]);
 
-  // --- realtime: WebSocket для новых корневых комментариев ---
+  useEffect(() => {
+    if (!loaderRef.current || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && !loading && hasMore) {
+          const nextPage = page + 1;
+          setPage(nextPage);
+          fetchComments(nextPage, true);
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px 200px 0px", 
+      }
+    );
+
+    observer.observe(loaderRef.current);
+
+    return () => observer.disconnect();
+  }, [loaderRef, hasMore, loading, page]); 
+    
   useEffect(() => {
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     const wsUrl = `${wsScheme}://${window.location.host}/ws/comments/`;
@@ -119,25 +148,9 @@ function Home() {
             replies: c.replies || [],
           };
 
-          // Добавляем новый коммент в начало только если
-          // мы на 1 странице и сортировка по дате сверху-вниз
-          setComments((prev) => {
-            if (
-              page !== 1 ||
-              sortField !== "created" ||
-              sortOrder !== "desc"
-            ) {
-              return prev;
-            }
-
-            const next = [mapped, ...prev];
-
-            // поддерживаем размер страницы
-            if (next.length > PAGE_SIZE) {
-              return next.slice(0, PAGE_SIZE);
-            }
-            return next;
-          });
+          if (sortField === "created" && sortOrder === "desc") {
+            setComments((prev) => [mapped, ...prev]);
+          }
 
           setTotal((prev) => prev + 1);
         }
@@ -153,9 +166,9 @@ function Home() {
     return () => {
       socket.close();
     };
-  }, [page, sortField, sortOrder]);
+  }, [sortField, sortOrder]);
 
-  // --- сортировка таблицы ---
+
   const handleSort = (field) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "desc" ? "asc" : "desc");
@@ -163,24 +176,18 @@ function Home() {
       setSortField(field);
       setSortOrder("desc");
     }
-    setPage(1);
   };
 
-  // Коллбек после создания нового комментария из модалки
   const handleCommentCreated = () => {
     setIsModalOpen(false);
-    setPage(1);
     setSortField("created");
     setSortOrder("desc");
-    // REST подхватит, плюс WebSocket для новых
-    fetchComments();
+    setPage(1);
+    fetchComments(1, false);
   };
-
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="comments-container">
-      {loading && <p>Загрузка...</p>}
       {error && <p style={{ color: "red" }}>Ошибка: {error}</p>}
 
       {selectedComment ? (
@@ -189,17 +196,21 @@ function Home() {
           onBack={() => setSelectedComment(null)}
         />
       ) : (
-        <CommentTable
-          comments={comments}
-          onPageChange={setPage}
-          page={page}
-          pageCount={pageCount}
-          onSort={handleSort}
-          sortField={sortField}
-          sortOrder={sortOrder}
-          onSelect={setSelectedComment}
-          onAddComment={() => setIsModalOpen(true)}
-        />
+        <>
+          <CommentTable
+            comments={comments}
+            onSort={handleSort}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSelect={setSelectedComment}
+            onAddComment={() => setIsModalOpen(true)}
+          />
+
+          {/* маяк для автоподгрузки */}
+          {hasMore && <div ref={loaderRef} style={{ height: "40px" }} />}
+
+          {loading && <p>Загрузка...</p>}
+        </>
       )}
 
       {isModalOpen && (

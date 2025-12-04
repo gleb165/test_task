@@ -1,14 +1,14 @@
 from rest_framework.response import Response
 from rest_framework import status
-from django.http.response  import Http404
 from core.abstract.viewsets import AbstractViewSet
 from core.comment.models import Comment
 from core.comment.serializers import CommentSerializer
 from core.auth.viewsets.permissions  import UserPermission
 from rest_framework.decorators import action
-from django.db.models import Case, When, Value, CharField, F
+from django.db.models import Case, When, CharField, F
 from rest_framework.permissions import AllowAny
-
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 class CommentViewSet(AbstractViewSet):
     queryset = Comment.objects.all()
@@ -68,12 +68,36 @@ class CommentViewSet(AbstractViewSet):
         self.check_object_permissions(self.request, obj)
         return obj
     
+    def _broadcast_comment_created(self, comment, request):
+        channel_layer = get_channel_layer()
+        data = CommentSerializer(comment, context={'request': request}).data
+        async_to_sync(channel_layer.group_send)(
+            "comments_list",
+            {
+                "type": "comment_created",
+                "comment": data,
+            }
+        )
+
+    def _broadcast_reply_created(self, root_comment, reply, request):
+        channel_layer = get_channel_layer()
+        data = CommentSerializer(reply, context={'request': request}).data
+        async_to_sync(channel_layer.group_send)(
+            f"comment_{root_comment.public_id}",
+            {
+                "type": "reply_created",
+                "comment": data,
+            }
+        )
+    
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-    
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        comment = serializer.save()
+        self._broadcast_comment_created(comment, request)
+
+        return Response(CommentSerializer(comment, context={'request': request}).data,
+                        status=status.HTTP_201_CREATED)
     
     
     @action(detail=True, methods=['get', 'post'], permission_classes=[AllowAny])
@@ -81,17 +105,29 @@ class CommentViewSet(AbstractViewSet):
         comment = self.get_object()
 
         if request.method == 'GET':
-            replies = comment.replies.all() 
+            replies = comment.replies.all()
             serializer = self.get_serializer(replies, many=True)
             return Response(serializer.data)
 
         elif request.method == 'POST':
             data = request.data.copy()
-            data['parent'] = comment.public_id 
-            serializer = self.get_serializer(data=data)
+            data['parent'] = comment.public_id
+            serializer = self.get_serializer(data=data, context={'request': request})
             if serializer.is_valid():
-                reply = serializer.save() 
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                reply = serializer.save()
+
+                # находим корневой коммент (чтобы вся ветка жила в одной WS-группе)
+                root = comment
+                while root.parent_id:
+                    root = root.parent
+
+                self._broadcast_reply_created(root, reply, request)
+
+                return Response(
+                    CommentSerializer(reply, context={'request': request}).data,
+                    status=status.HTTP_201_CREATED
+                )
+
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     

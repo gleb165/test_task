@@ -1,22 +1,18 @@
 // CommentsPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Comment from "./Comment";
 import { authFetch } from "../authFetch";
 
-/**
- * Props:
- *  - commentId: UUID выбранного комментария
- *  - onBack: optional функция для кнопки "Назад" (если нужна)
- */
 export default function CommentsPage({ commentId, onBack }) {
   const [comment, setComment] = useState(null);
   const [loading, setLoading] = useState(Boolean(commentId));
   const [error, setError] = useState(null);
 
-  // рекурсивная загрузка реплаев
-  const loadRepliesRecursively = async (parentId) => {
+  const loadRepliesRecursively = useCallback(async (parentId) => {
     try {
-      const res = await authFetch(`/api/comments/${parentId}/replies/`);
+      const res = await authFetch(`/api/comments/${parentId}/replies/`, {
+        method: "GET",
+      });
       if (!res.ok) throw new Error(`Replies load failed (${res.status})`);
       const replies = await res.json();
 
@@ -30,7 +26,7 @@ export default function CommentsPage({ commentId, onBack }) {
             created: r.created,
             text: r.text,
             likes: r.likes_count ?? 0,
-            liked: r.liked ?? null,      // true / false / null
+            liked: r.liked ?? false,
             attachments: r.attachments ?? [],
             replies: nested,
           };
@@ -42,9 +38,9 @@ export default function CommentsPage({ commentId, onBack }) {
       console.error("loadRepliesRecursively error:", err);
       return [];
     }
-  };
+  }, []);
 
-  const fetchComment = async () => {
+  const fetchComment = useCallback(async () => {
     if (!commentId) {
       setComment(null);
       setLoading(false);
@@ -55,7 +51,9 @@ export default function CommentsPage({ commentId, onBack }) {
     setError(null);
 
     try {
-      const res = await authFetch(`/api/comments/${commentId}/`);
+      const res = await authFetch(`/api/comments/${commentId}/`, {
+        method: "GET",
+      });
       if (!res.ok) throw new Error(`Failed to load comment (${res.status})`);
       const data = await res.json();
 
@@ -66,13 +64,12 @@ export default function CommentsPage({ commentId, onBack }) {
         created: data.created,
         text: data.text,
         likes: data.likes_count ?? 0,
-        liked: data.liked ?? null,
+        liked: data.liked ?? false,
         attachments: data.attachments ?? [],
         replies: [],
       };
 
       mapped.replies = await loadRepliesRecursively(mapped.id);
-
       setComment(mapped);
     } catch (err) {
       console.error(err);
@@ -80,14 +77,39 @@ export default function CommentsPage({ commentId, onBack }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [commentId, loadRepliesRecursively]);
 
   useEffect(() => {
     fetchComment();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [commentId]);
+  }, [fetchComment]);
 
-  // --- ЛАЙК / ДИЗЛАЙК ---
+  // 🔥 WebSocket: только триггер перезагрузки треда
+  useEffect(() => {
+    if (!commentId) return;
+
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${wsScheme}://${window.location.host}/ws/comments/${commentId}/`;
+
+    const socket = new WebSocket(wsUrl);
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("WS message:", data);
+
+        if (data.type === "reply_created") {
+          // Просто перезагружаем тред
+          fetchComment();
+        }
+      } catch (e) {
+        console.error("Ошибка парсинга WS-сообщения:", e);
+      }
+    };
+
+    socket.onerror = (e) => console.error("WebSocket error:", e);
+
+    return () => socket.close();
+  }, [commentId, fetchComment]);
 
   const handleLike = async (commentIdToLike) => {
     try {
@@ -98,7 +120,6 @@ export default function CommentsPage({ commentId, onBack }) {
         console.error("Like failed", res.status);
         return;
       }
-      // после успешного лайка просто перезагружаем ветку
       fetchComment();
     } catch (e) {
       console.error("Like error:", e);
@@ -107,9 +128,10 @@ export default function CommentsPage({ commentId, onBack }) {
 
   const handleDislike = async (commentIdToDislike) => {
     try {
-      const res = await authFetch(`/api/comments/${commentIdToDislike}/unlike/`, {
-        method: "POST",
-      });
+      const res = await authFetch(
+        `/api/comments/${commentIdToDislike}/unlike/`,
+        { method: "POST" }
+      );
       if (!res.ok) {
         console.error("Dislike failed", res.status);
         return;
@@ -119,8 +141,6 @@ export default function CommentsPage({ commentId, onBack }) {
       console.error("Dislike error:", e);
     }
   };
-
-  // --- RENDER ---
 
   if (loading) return <div>Загрузка комментария...</div>;
   if (error) return <div style={{ color: "red" }}>Ошибка: {error}</div>;
@@ -150,6 +170,7 @@ export default function CommentsPage({ commentId, onBack }) {
         comment={comment}
         onLike={handleLike}
         onDislike={handleDislike}
+        onReplyCreated={fetchComment}
       />
     </div>
   );

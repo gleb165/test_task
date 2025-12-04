@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./Comment.css";
 import CreateCommentModal from "./CreateCommentModal";
 
-const Comment = ({ comment, onLike, onDislike }) => {
+const Comment = ({ comment, onLike, onDislike, onReplyCreated }) => {
   const [user, setUser] = useState(null);
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [lightboxImg, setLightboxImg] = useState(null);
@@ -23,6 +23,15 @@ const Comment = ({ comment, onLike, onDislike }) => {
   const currentUser = isUserAuthenticated
     ? { username: user.username, email: user.email }
     : {};
+
+  const handleReplyCreated = () => {
+    // закрываем модал
+    setReplyModalOpen(false);
+    // говорим родителю "у этого комментария появился новый ответ"
+    if (onReplyCreated) {
+      onReplyCreated(comment.id);
+    }
+  };
 
   return (
     <div className="comment-wrapper">
@@ -122,9 +131,10 @@ const Comment = ({ comment, onLike, onDislike }) => {
             <Comment
               key={rep.id}
               comment={rep}
-              // вот это было нужно добавить:
               onLike={onLike}
               onDislike={onDislike}
+              // очень важно: пробрасываем onReplyCreated дальше
+              onReplyCreated={onReplyCreated}
             />
           ))}
         </div>
@@ -147,7 +157,8 @@ const Comment = ({ comment, onLike, onDislike }) => {
           user={currentUser}
           parentId={comment.id}
           onClose={() => setReplyModalOpen(false)}
-          onCommentCreated={() => setReplyModalOpen(false)}
+          // вот тут меняем: теперь говорим родителю
+          onCommentCreated={handleReplyCreated}
         />
       )}
     </div>

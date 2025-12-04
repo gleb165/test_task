@@ -1,15 +1,18 @@
+/* ОБЩИЙ КОНТЕЙНЕР ОДНОГО КОММЕНТАРИЯ */
 .comment-wrapper {
-    margin-top: 12px;
+    margin-top: 16px;
 }
 
+/* КАРТОЧКА КОММЕНТАРИЯ */
 .comment-card {
     background: #ffffff;
-    border-radius: 14px;
-    padding: 18px 20px;
-    border: 1px solid #e6e6e6;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    border-radius: 18px;
+    padding: 16px 18px 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
 
+/* ХЕДЕР: АВАТАР + ИМЯ + ДАТА */
 .comment-header {
     display: flex;
     align-items: center;
@@ -17,9 +20,11 @@
 }
 
 .avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    background: #111;
+    object-fit: cover;
 }
 
 .comment-meta {
@@ -31,35 +36,24 @@
 .username {
     font-size: 15px;
     font-weight: 700;
-    color: #222;
+    color: #111827;
+    /* почти чёрный */
 }
 
 .timestamp {
-    font-size: 12.5px;
-    color: #767676;
+    font-size: 12px;
+    color: #9ca3af;
 }
 
-.comment-icons {
-    display: flex;
-    gap: 12px;
-    font-size: 17px;
-    color: #9b9b9b;
-    cursor: pointer;
-}
-
+/* ТЕКСТ КОММЕНТАРИЯ */
 .comment-body {
-    margin-top: 12px;
-    font-size: 15px;
-    color: #333;
-    line-height: 1.42;
-}
-
-.attachments img {
-    width: 160px;
-    border-radius: 10px;
     margin-top: 10px;
+    font-size: 14.5px;
+    color: #111827;
+    line-height: 1.5;
 }
 
+/* ПОДВАЛ: ОТВЕТ + ЛАЙКИ */
 .comment-footer {
     margin-top: 14px;
     display: flex;
@@ -67,41 +61,73 @@
     justify-content: space-between;
 }
 
+/* КНОПКА ОТВЕТА — В СТИЛЕ КНОПОК ПРИЛОЖЕНИЯ */
 .reply-btn {
-    background: none;
+    background: #111;
+    border-radius: 999px;
     border: none;
-    color: #377dff;
-    font-size: 14px;
+    color: #f9fafb;
+    font-size: 13px;
     font-weight: 600;
+    padding: 6px 14px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .reply-btn:hover {
-    opacity: 0.7;
+    background: #1f2933;
+    transform: translateY(-1px);
 }
 
+/* ЛАЙК-БЛОК В ВИДЕ ЧИПСА */
 .like-block {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 16px;
+    font-size: 14px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    padding: 4px 8px;
 }
 
 .like-btn,
 .dislike-btn {
-    background: none;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
     border: none;
+    background: transparent;
     cursor: pointer;
-    font-size: 18px;
-    color: #7a7a7a;
+
+    font-size: 15px;
+    color: #6b7280;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
 
+.like-btn:hover,
+.dislike-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    transform: translateY(-0.5px);
+}
+
+/* активные лайк/дизлайк */
+.like-btn.active-like,
+.dislike-btn.active-dislike {
+    background: #111827;
+    color: #f9fafb;
+    font-weight: 600;
+}
+
+/* РЕПЛАИ / ВЕТКИ */
 .comment-replies {
-    margin-left: 55px;
+    margin-left: 32px;
     margin-top: 14px;
-    border-left: 2px solid #ececec;
-    padding-left: 20px;
+    border-left: 2px solid rgba(17, 24, 39, 0.07);
+    padding-left: 18px; 
 }
 
 /* hover effects for icons */
@@ -217,9 +243,3 @@
 
 
 
-.like-btn.active-like,
-.dislike-btn.active-dislike {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-    font-weight: bold;
-}

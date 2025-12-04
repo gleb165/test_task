@@ -1,0 +1,4 @@
+Operations to perform:
+  Apply all migrations: admin, auth, authtoken, captcha, contenttypes, core_comment, core_user, django_celery_results, sessions
+Running migrations:
+  No migrations to apply.

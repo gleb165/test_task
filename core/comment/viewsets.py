@@ -23,7 +23,7 @@ class CommentViewSet(AbstractViewSet):
         
         user = self.request.user
 
-        if not user.is_authenticated or not (user.is_staff or user.is_superuser):
+        if not user.is_authenticated or not user.is_superuser:
             queryset = queryset.filter(active=True, parent__isnull=True)
             
         # Аннотация для sortable_name

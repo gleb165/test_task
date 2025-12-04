@@ -1,12 +1,113 @@
-version: '3'
-
 services:
+  postgres:
+    image: postgres:17
+    environment:
+      - POSTGRES_DB=test-task-db
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - test-task-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10M"
+        max-file: "5"
+
+  redis:
+    image: redis:7.0
+    restart: unless-stopped
+    command: redis-server --save 20 1 --loglevel warning --port 6379
+    volumes:
+      - cache:/data
+    networks:
+      - test-task-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10M"
+        max-file: "5"
+
   rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
+    image: rabbitmq:3.13-management
+    restart: unless-stopped
     ports:
       - "5672:5672"
-      - "15672:15672"  # web UI http://localhost:15672
+      - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      - RABBITMQ_DEFAULT_USER=rabbitmq_user
+      - RABBITMQ_DEFAULT_PASS=rabbitmq_pass
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - test-task-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10M"
+        max-file: "5"
+
+  wsgi:
+    restart: unless-stopped
+    container_name: test-task-wsgi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    environment:
+      - CONTAINER_TYPE=master
+      - RABBITMQ_URL=amqp://rabbitmq_user:rabbitmq_pass@rabbitmq:5672//
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - test-task-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10M"
+        max-file: "5"
+
+  celery:
+    build: .
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    environment:
+      - CONTAINER_TYPE=c-worker
+      - RABBITMQ_URL=amqp://rabbitmq_user:rabbitmq_pass@rabbitmq:5672//
+    restart: unless-stopped
+    depends_on:
+      - wsgi
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - test-task-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10M"
+        max-file: "5"
+
+volumes:
+  pgdata:
+    driver: local
+  cache:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  test-task-network:

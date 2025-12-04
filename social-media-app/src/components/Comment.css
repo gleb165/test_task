@@ -214,3 +214,12 @@
 }
 
 /* ... (остальные стили) */
+
+
+
+.like-btn.active-like,
+.dislike-btn.active-dislike {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    font-weight: bold;
+}

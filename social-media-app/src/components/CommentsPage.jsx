@@ -1,6 +1,7 @@
 // CommentsPage.jsx
 import React, { useEffect, useState } from "react";
 import Comment from "./Comment";
+import { authFetch } from "../authFetch";
 
 /**
  * Props:
@@ -24,7 +25,7 @@ export default function CommentsPage({ commentId, onBack }) {
     // Загружает replies рекурсивно для переданного comment object (использует endpoint /replies/)
     const loadRepliesRecursively = async (parentId) => {
       try {
-        const res = await fetch(`/api/comments/${parentId}/replies/`);
+        const res = await authFetch(`/api/comments/${parentId}/replies/`);
         if (!res.ok) throw new Error(`Replies load failed (${res.status})`);
         const replies = await res.json();
 
@@ -57,7 +58,7 @@ export default function CommentsPage({ commentId, onBack }) {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/comments/${commentId}/`);
+        const res = await authFetch(`/api/comments/${commentId}/`);
         if (!res.ok) throw new Error(`Failed to load comment (${res.status})`);
         const data = await res.json();
 

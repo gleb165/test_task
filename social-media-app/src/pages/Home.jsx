@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import CommentTable from "../components/CommentTable";
 import CommentsPage from "../components/CommentsPage";
 import CreateCommentModal from "../components/CreateCommentModal"; 
+import { authFetch } from "../authFetch";
 
 const PAGE_SIZE = 25;
 
@@ -41,7 +42,8 @@ function Home() {
     const fetchComments = () => {
         setLoading(true);
         setError(null);
-        fetch(`/api/comments/?page=${page}&sort_by=${sortField}&order=${sortOrder}`) 
+
+        authFetch(`/api/comments/?page=${page}&sort_by=${sortField}&order=${sortOrder}`)
             .then((res) => {
                 if (!res.ok) throw new Error("Network response was not ok");
                 return res.json();
@@ -49,7 +51,6 @@ function Home() {
             .then((data) => {
                 const mappedComments = (data.results || []).map(comment => ({
                     id: comment.id,
-                    // Используем поля, которые ваш сериализатор возвращает для имени/email
                     username: comment.author_name || (comment.author?.name || comment.guest_name),
                     email: comment.author_email || (comment.author?.email || comment.guest_email),
                     avatar: comment.author?.avatar || '/default-avatar.png',
@@ -59,8 +60,9 @@ function Home() {
                     likes: comment.likes_count,
                     liked: comment.liked,
                     attachments: comment.attachments,
-                    replies: [],
+                    replies: comment.replies || [],
                 }));
+
                 setComments(mappedComments);
                 setTotal(data.count || 0);
                 setLoading(false);
@@ -69,7 +71,9 @@ function Home() {
                 setError(err.message);
                 setLoading(false);
             });
+
     };
+    
 
     useEffect(() => {
         fetchComments();
@@ -87,11 +91,9 @@ function Home() {
 
     const handleCommentCreated = () => {
         setIsModalOpen(false); 
-        // Сброс на первую страницу и сортировку по дате для отображения нового комментария
         setPage(1); 
         setSortField('created');
         setSortOrder('desc');
-        // useEffect сработает и загрузит обновленный список
     }
 
     const pageCount = Math.ceil(total / PAGE_SIZE);

@@ -17,26 +17,35 @@ const LoginModal = ({ onClose, onLogin }) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);
+  
     try {
       const res = await fetch('/api/auth/login/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
+  
       const data = await res.json();
+  
       if (!res.ok) throw new Error(data?.detail || 'Ошибка авторизации');
+  
       localStorage.setItem('access', data.access);
       localStorage.setItem('refresh', data.refresh);
       localStorage.setItem('user', JSON.stringify(data.user));
+  
       setSuccess(true);
+  
       if (onLogin) onLogin(data.user);
+  
       setTimeout(() => {
-        onClose();
-      }, 1200);
+        window.location.reload(); 
+      }, 800);
+  
     } catch (err) {
       setError(err.message);
     }
   };
+  
 
   return (
     <div className="modal-overlay">

@@ -239,3 +239,4 @@ CACHES = {
     }
 }
 
+ACTIVATION_DOMAIN = "localhost:8000"

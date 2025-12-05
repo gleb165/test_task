@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Comment from "./Comment";
 import { authFetch } from "../authFetch";
+import defaultAvatar from "../assets/default-avatar.png";
 
 export default function CommentsPage({ commentId, onBack }) {
   const [comment, setComment] = useState(null);
@@ -22,7 +23,7 @@ export default function CommentsPage({ commentId, onBack }) {
           return {
             id: r.id,
             username: r.author_name || r.guest_name,
-            avatar: r.author?.avatar || "/default-avatar.png",
+            avatar: r.author?.avatar || defaultAvatar,
             created: r.created,
             text: r.text,
             likes: r.likes_count ?? 0,
@@ -60,7 +61,7 @@ export default function CommentsPage({ commentId, onBack }) {
       const mapped = {
         id: data.id,
         username: data.author_name || data.guest_name,
-        avatar: data.author?.avatar || "/default-avatar.png",
+        avatar: data.author?.avatar || defaultAvatar,
         created: data.created,
         text: data.text,
         likes: data.likes_count ?? 0,

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Comment.css";
 import CreateCommentModal from "./CreateCommentModal";
+import defaultAvatar from "../assets/default-avatar.png";
 
 const Comment = ({ comment, onLike, onDislike, onReplyCreated }) => {
   const [user, setUser] = useState(null);
@@ -37,7 +38,7 @@ const Comment = ({ comment, onLike, onDislike, onReplyCreated }) => {
         <div className="comment-header">
           <img
             className="avatar"
-            src={comment.avatar || "/default-avatar.png"}
+            src={comment.avatar || defaultAvatar}
             alt="avatar"
           />
           <div className="comment-meta">

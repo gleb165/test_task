@@ -3,20 +3,12 @@ import CommentTable from "../components/CommentTable";
 import CommentsPage from "../components/CommentsPage";
 import CreateCommentModal from "../components/CreateCommentModal";
 import { authFetch } from "../authFetch";
+import defaultAvatar from "../assets/default-avatar.png";
 
 function Home() {
+  // ===== USER =====
   const [user, setUser] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const [sortField, setSortField] = useState("created");
-  const [sortOrder, setSortOrder] = useState("desc");
-
-  const [selectedComment, setSelectedComment] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // ===== LOAD USER =====
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -31,10 +23,25 @@ function Home() {
 
   const isUserAuthenticated = !!user;
   const currentUser = isUserAuthenticated
-    ? { username: user.username, email: user.email }
+    ? { id: user.id, username: user.username, email: user.email }
     : {};
 
-  // ===== FETCH COMMENTS ONCE =====
+  // ===== COMMENTS =====
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // ===== SORT =====
+  const [sortField, setSortField] = useState("created");
+  const [sortOrder, setSortOrder] = useState("desc");
+
+  // ===== NAVIGATION =====
+  const [selectedComment, setSelectedComment] = useState(null);
+
+  // ===== MODAL =====
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // ===== FETCH COMMENTS =====
   const fetchComments = () => {
     setLoading(true);
     setError(null);
@@ -47,9 +54,10 @@ function Home() {
       .then((data) => {
         const mapped = (data.results || []).map((c) => ({
           id: c.id,
+          authorId: c.author?.id ?? null,
           username: c.author_name || c.guest_name,
           email: c.author_email || c.guest_email,
-          avatar: c.author?.avatar || "/default-avatar.png",
+          avatar: c.author?.avatar || defaultAvatar,
           timestamp: new Date(c.created).toLocaleString("ru-RU", {
             dateStyle: "medium",
             timeStyle: "short",
@@ -72,12 +80,11 @@ function Home() {
       });
   };
 
-  // ===== LOAD ON SORT CHANGE =====
   useEffect(() => {
     fetchComments();
   }, [sortField, sortOrder]);
 
-  // ===== REALTIME COMMENTS THROUGH WS =====
+  // ===== WEBSOCKET =====
   useEffect(() => {
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     const wsUrl = `${wsScheme}://${window.location.host}/ws/comments/`;
@@ -93,9 +100,10 @@ function Home() {
 
           const mapped = {
             id: c.id,
+            authorId: c.author?.id ?? null,
             username: c.author_name || c.guest_name,
             email: c.author_email || c.guest_email,
-            avatar: c.author?.avatar || "/default-avatar.png",
+            avatar: c.author?.avatar || defaultAvatar,
             timestamp: new Date(c.created).toLocaleString("ru-RU", {
               dateStyle: "medium",
               timeStyle: "short",
@@ -121,7 +129,7 @@ function Home() {
     return () => socket.close();
   }, [sortField, sortOrder]);
 
-  // ===== SORT HANDLER =====
+  // ===== SORT =====
   const handleSort = (field) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "desc" ? "asc" : "desc");
@@ -131,7 +139,7 @@ function Home() {
     }
   };
 
-  // ===== AFTER CREATE =====
+  // ===== COMMENT CREATED =====
   const handleCommentCreated = () => {
     setIsModalOpen(false);
     setSortField("created");

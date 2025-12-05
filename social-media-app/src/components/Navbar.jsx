@@ -3,7 +3,7 @@ import RegisterModal from './RegisterModal';
 import LoginModal from './LoginModal';
 import './Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({ onUserClick }) => { 
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [user, setUser] = useState(null);
@@ -37,12 +37,27 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <span className="navbar-profile">{user.username}</span>
+              <button
+                className="navbar-profile"
+                onClick={() => onUserClick(user.id)} 
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#f8f8f8',
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontWeight: 'bold'
+                }}
+              >
+                {user.username}
+              </button>
+
               <button onClick={handleLogout}>Выйти</button>
             </>
           )}
         </div>
       </div>
+
       {showRegister && <RegisterModal onClose={() => setShowRegister(false)} />}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={handleLogin} />}
     </nav>

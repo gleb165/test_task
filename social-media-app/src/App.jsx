@@ -1,23 +1,30 @@
 import { BrowserRouter } from 'react-router-dom';
-import { useState } from 'react'
-import { Route, Routes } from 'react-router-dom'
-import Home from './pages/Home.jsx'
-import './App.css'
+import { useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import Home from './pages/Home.jsx';
 import Navbar from './components/Navbar';
+import UserProfile from './components/UserProfile';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [openedProfileId, setOpenedProfileId] = useState(null);
 
   return (
-    <>
-      <Navbar />
-      <BrowserRouter>
+    <BrowserRouter>
+      <Navbar onUserClick={(id) => setOpenedProfileId(id)} />
+
+      {openedProfileId ? (
+        <UserProfile
+          userId={openedProfileId}
+          onBack={() => setOpenedProfileId(null)}
+        />
+      ) : (
         <Routes>
           <Route path="/" element={<Home />} />
         </Routes>
-      </BrowserRouter>
-    </>
-  )
+      )}
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

@@ -1,15 +1,22 @@
-// Home.jsx
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import CommentTable from "../components/CommentTable";
 import CommentsPage from "../components/CommentsPage";
 import CreateCommentModal from "../components/CreateCommentModal";
 import { authFetch } from "../authFetch";
 
-const PAGE_SIZE = 25;
-
 function Home() {
   const [user, setUser] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  const [sortField, setSortField] = useState("created");
+  const [sortOrder, setSortOrder] = useState("desc");
+
+  const [selectedComment, setSelectedComment] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // ===== LOAD USER =====
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -27,31 +34,12 @@ function Home() {
     ? { username: user.username, email: user.email }
     : {};
 
-  const [comments, setComments] = useState([]);
-  const [page, setPage] = useState(1); // последняя загруженная страница
-  const [total, setTotal] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const [sortField, setSortField] = useState("created");
-  const [sortOrder, setSortOrder] = useState("desc");
-
-  const [selectedComment, setSelectedComment] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-
-  const loaderRef = useRef(null);
-
-  const fetchComments = (pageToLoad = 1, append = false) => {
+  // ===== FETCH COMMENTS ONCE =====
+  const fetchComments = () => {
     setLoading(true);
     setError(null);
 
-    authFetch(
-      `/api/comments/?page=${pageToLoad}&sort_by=${sortField}&order=${sortOrder}`,
-      { method: "GET" }
-    )
+    authFetch(`/api/comments/?sort_by=${sortField}&order=${sortOrder}`)
       .then((res) => {
         if (!res.ok) throw new Error("Network response was not ok");
         return res.json();
@@ -74,50 +62,22 @@ function Home() {
           replies: c.replies || [],
         }));
 
-        setComments((prev) => (append ? [...prev, ...mapped] : mapped));
-
-        const totalCount = data.count || 0;
-        setTotal(totalCount);
-
-        const maxPage = Math.ceil(totalCount / PAGE_SIZE);
-        setHasMore(mapped.length > 0 && pageToLoad < maxPage);
-
-        setLoading(false);
+        setComments(mapped);
       })
       .catch((err) => {
         setError(err.message || "Ошибка загрузки");
+      })
+      .finally(() => {
         setLoading(false);
       });
   };
 
+  // ===== LOAD ON SORT CHANGE =====
   useEffect(() => {
-    setPage(1);
-    fetchComments(1, false);
+    fetchComments();
   }, [sortField, sortOrder]);
 
-  useEffect(() => {
-    if (!loaderRef.current || !hasMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const first = entries[0];
-        if (first.isIntersecting && !loading && hasMore) {
-          const nextPage = page + 1;
-          setPage(nextPage);
-          fetchComments(nextPage, true);
-        }
-      },
-      {
-        threshold: 0.1,
-        rootMargin: "0px 0px 200px 0px", 
-      }
-    );
-
-    observer.observe(loaderRef.current);
-
-    return () => observer.disconnect();
-  }, [loaderRef, hasMore, loading, page]); 
-    
+  // ===== REALTIME COMMENTS THROUGH WS =====
   useEffect(() => {
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     const wsUrl = `${wsScheme}://${window.location.host}/ws/comments/`;
@@ -148,27 +108,20 @@ function Home() {
             replies: c.replies || [],
           };
 
+          // prepend only if sorted by newest
           if (sortField === "created" && sortOrder === "desc") {
             setComments((prev) => [mapped, ...prev]);
           }
-
-          setTotal((prev) => prev + 1);
         }
       } catch (e) {
-        console.error("Ошибка парсинга WS-сообщения:", e);
+        console.error("Ошибка парсинга WS:", e);
       }
     };
 
-    socket.onerror = (e) => {
-      console.error("Ошибка WebSocket:", e);
-    };
-
-    return () => {
-      socket.close();
-    };
+    return () => socket.close();
   }, [sortField, sortOrder]);
 
-
+  // ===== SORT HANDLER =====
   const handleSort = (field) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "desc" ? "asc" : "desc");
@@ -178,14 +131,15 @@ function Home() {
     }
   };
 
+  // ===== AFTER CREATE =====
   const handleCommentCreated = () => {
     setIsModalOpen(false);
     setSortField("created");
     setSortOrder("desc");
-    setPage(1);
-    fetchComments(1, false);
+    fetchComments();
   };
 
+  // ===== RENDER =====
   return (
     <div className="comments-container">
       {error && <p style={{ color: "red" }}>Ошибка: {error}</p>}
@@ -205,9 +159,6 @@ function Home() {
             onSelect={setSelectedComment}
             onAddComment={() => setIsModalOpen(true)}
           />
-
-          {/* маяк для автоподгрузки */}
-          {hasMore && <div ref={loaderRef} style={{ height: "40px" }} />}
 
           {loading && <p>Загрузка...</p>}
         </>
